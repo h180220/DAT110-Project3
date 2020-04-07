@@ -39,31 +39,18 @@ public class Util {
 	public static boolean computeLogic(BigInteger id, BigInteger lower, BigInteger upper) {
 		
 		boolean cond = false;
-		
-		BigInteger addrSize = Hash.addressSize();
-		BigInteger upMod = upper.mod(addrSize);
-		BigInteger lowMod = lower.mod(addrSize);
-		
-		
-		if (lowMod.compareTo(upMod) == 0 && id.compareTo(lowMod) == 0)
+		BigInteger mod = Hash.addressSize();
+
+		if (upper.compareTo(lower) < 0)
 		{
-			cond = true;
-		}
-		
-		if (lowMod.compareTo(upMod) < 0)
-		{
-			if (id.compareTo(lowMod) >= 0 && id.compareTo(upMod) <= 0)
+			upper = upper.add(mod);
+			if (upper.compareTo(id) > 0)
 			{
-				cond = true;
+				id = id.add(mod);
 			}
-		} 	
-		
-		if (id.compareTo(lowMod) >= 0 && id.compareTo(addrSize) <= 0)
-		{
-			cond = true;
 		}
 		
-		if (id.compareTo(upMod) <= 0 && id.compareTo(new BigInteger("0")) >= 0)
+		if (lower.compareTo(id) <= 0 && upper.compareTo(id) >= 0)
 		{
 			cond = true;
 		}

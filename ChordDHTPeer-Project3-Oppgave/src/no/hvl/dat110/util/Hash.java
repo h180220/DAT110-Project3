@@ -67,7 +67,14 @@ public class Hash {
 		
 		int digestlen = 0;
 		
-		digestlen = hashint.bitLength();
+		try
+		{
+			digestlen = MessageDigest.getInstance("MD5").getDigestLength();
+		} catch (NoSuchAlgorithmException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		return digestlen*8;
 	}
