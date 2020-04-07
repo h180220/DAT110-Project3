@@ -69,8 +69,26 @@ public class FileManager {
     public int distributeReplicastoPeers() throws RemoteException {
     	int counter = 0;
     	
-    	// Task1: Given a filename, make replicas and distribute them to all active peers such that: pred < replica <= peer
+		Random rnd = new Random();
+    	int index = rnd.nextInt(Util.numReplicas - 1);
     	
+    	// Task1: Given a filename, make replicas and distribute them to all active peers such that: pred < replica <= peer
+    	createReplicaFiles();
+    	
+    	for(int i = 0; i < replicafiles.length; i++) {
+    		
+    		NodeInterface succOfFileID = chordnode.findSuccessor(replicafiles[i]);
+    		succOfFileID.addKey(replicafiles[i]);
+        	
+        	if(counter == index) {
+        		succOfFileID.saveFileContent(filename, chordnode.getNodeID(), bytesOfFile, true);
+        	} else {
+        		succOfFileID.saveFileContent(filename, chordnode.getNodeID(), bytesOfFile, false);
+        	}
+        	
+        	counter++;
+    		
+    	}
     	// Task2: assign a replica as the primary for this file. Hint, see the slide (project 3) on Canvas
     	
     	// create replicas of the filename
@@ -102,8 +120,15 @@ public class FileManager {
 		// Task: Given a filename, find all the peers that hold a copy of this file
 		
 		// generate the N replicas from the filename by calling createReplicaFiles()
+		createReplicaFiles();
 		
 		// it means, iterate over the replicas of the file
+		for (int i = 0; i < replicafiles.length; i++) {
+			NodeInterface s = chordnode.findSuccessor(replicafiles[i]);
+			Message msg = s.getFilesMetadata(replicafiles[i]);
+			
+			succinfo.add(msg);
+		}
 		
 		// for each replica, do findSuccessor(replica) that returns successor s.
 		
@@ -125,7 +150,7 @@ public class FileManager {
 		// Task: Given all the active peers of a file (activeNodesforFile()), find which is holding the primary copy
 		
 		// iterate over the activeNodesforFile
-		
+
 		// for each active peer (saved as Message)
 		
 		// use the primaryServer boolean variable contained in the Message class to check if it is the primary or not
