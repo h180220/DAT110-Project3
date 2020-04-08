@@ -39,7 +39,7 @@ public class ChordLookup {
 		if (Util.computeLogic(key, node.getNodeID().add(new BigInteger("1")), successor.getNodeID()))
 		{
 			return successor;
-		}
+		}  
 		
 		else {
 			// if logic returns false; call findHighestPredecessor(key)
