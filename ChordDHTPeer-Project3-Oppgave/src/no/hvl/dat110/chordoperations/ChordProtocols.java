@@ -80,7 +80,7 @@ public class ChordProtocols {
 				BigInteger succnodeID = chordnode.getNodeID().add(nextsuccID);
 				succnodeID = succnodeID.mod(modulos);								// do succ(n + 2^(i-1)) mod 2^mbit
 				
-				//System.out.println("nodeID: "+chordnode.getNodeID()+" | succID: "+succnodeID);
+//				System.out.println("nodeID: "+chordnode.getNodeID()+" | succID: "+succnodeID);
 				
 				NodeInterface succnode = null;
 				try {

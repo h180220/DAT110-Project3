@@ -13,60 +13,63 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Hash { 
-	
-	private static BigInteger hashint; 
-	
-	public static BigInteger hashOf(String entity) {	
+public class Hash
+{
+
+	private static BigInteger hashint;
+
+	public static BigInteger hashOf(String entity)
+	{
 		// Task: Hash a given string using MD5 and return the result as a BigInteger.
-		
+
 		// we use MD5 with 128 bits digest
-		
-		try {
+
+		try
+		{
 			MessageDigest md = MessageDigest.getInstance("MD5");
-			
+
 			// compute the hash of the input 'entity'
 			byte[] digest = md.digest(entity.getBytes());
-			
+
 			// convert the hash into hex format
 			String hashvalue = toHex(digest);
-			
+
 			// convert the hex into BigInteger
 			hashint = new BigInteger(hashvalue, 16);
-				
-		} catch(NoSuchAlgorithmException e) {
-			
+
+		} catch (NoSuchAlgorithmException e)
+		{
+
 			e.printStackTrace();
 		}
-		
+
 		// return the BigInteger
-		
+
 		return hashint;
 	}
 
+	public static BigInteger addressSize()
+	{
 
-	public static BigInteger addressSize() {
-		
 		// Task: compute the address size of MD5
-		
+
 		// get the digest length
 		int numBits = bitSize();
-		
+
 		// compute the number of bits = digest length * 8
 		BigDecimal adSize = BigDecimal.valueOf(Math.pow(2, numBits));
 		// compute the address size = 2 ^ number of bits
-		
-		
-		
+
 		// return the address size
-		
+
 		return adSize.toBigInteger();
 	}
-	
-	public static int bitSize() {
-		
+
+	public static int bitSize()
+	{
+
 		int digestlen = 0;
-		
+
 		try
 		{
 			digestlen = MessageDigest.getInstance("MD5").getDigestLength();
@@ -75,14 +78,16 @@ public class Hash {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return digestlen*8;
+
+		return digestlen * 8;
 	}
-	
-	public static String toHex(byte[] digest) {
+
+	public static String toHex(byte[] digest)
+	{
 		StringBuilder strbuilder = new StringBuilder();
-		for(byte b : digest) {
-			strbuilder.append(String.format("%02x", b&0xff));
+		for (byte b : digest)
+		{
+			strbuilder.append(String.format("%02x", b & 0xff));
 		}
 		return strbuilder.toString();
 	}

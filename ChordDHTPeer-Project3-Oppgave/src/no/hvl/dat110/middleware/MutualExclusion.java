@@ -79,13 +79,13 @@ public class MutualExclusion
 		multicastMessage(message, messages);
 
 		// check that all replicas have replied (permission)
-		// if yes, acquireLock
-		// node.broadcastUpdatetoPeers
-		// clear the mutexqueue
 		if (areAllMessagesReturned(messages.size()))
 		{
+			// if yes, acquireLock
 			acquireLock();
+			// node.broadcastUpdatetoPeers
 			node.broadcastUpdatetoPeers(updates);
+			// clear the mutexqueue
 			mutexqueue.clear();
 			return true;
 		}
@@ -108,6 +108,7 @@ public class MutualExclusion
 		}
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	public void onMutexRequestReceived(Message message) throws RemoteException
 	{
 
@@ -117,34 +118,39 @@ public class MutualExclusion
 		// if message is from self, acknowledge, and call
 		// onMutexAcknowledgementReceived()
 
+		if (message.getNodeID().equals(node.getNodeName()))
+		{
+			message.setAcknowledged(true);
+			onMutexAcknowledgementReceived(message);
+			return;
+		}
+
 		int caseid = -1;
-		
-			if (message.getNodeIP().equals(node.getNodeName()))
-			{
-				caseid = 0;
-			}
-			
-			if (!CS_BUSY && !WANTS_TO_ENTER_CS)
-			{
-				caseid = 0;
-			}
-			
-			else if (CS_BUSY)
-			{
-				caseid = 1;
-			}
-			else
-			{
-				caseid = 2;
-			}
-		
+
 		// write if statement to transition to the correct caseid
+
 		// caseid=0: Receiver is not accessing shared resource and does not want to
-		// (send OK to sender)
-		// caseid=1: Receiver already has access to the resource (dont reply but queue
-		// the request)
+//			if (message.getNodeIP().equals(node.getNodeName()))
+//			{
+//				caseid = 0;
+//			}
+
+		if (!CS_BUSY && !WANTS_TO_ENTER_CS)
+		{
+			caseid = 0;
+		}
+
+		// caseid=1: Receiver already has access to the resource
+		else if (CS_BUSY)
+		{
+			caseid = 1;
+		}
+
 		// caseid=2: Receiver wants to access resource but is yet to - compare own
-		// message clock to received message's clock
+		else
+		{
+			caseid = 2;
+		}
 
 		// check for decision
 		doDecisionAlgorithm(message, mutexqueue, caseid);
@@ -196,14 +202,15 @@ public class MutualExclusion
 			int sendClock = message.getClock();
 			// own clock for the multicast message
 			int ownClock = node.getMessage().getClock();
-			
-			// compare clocks, the lowest wins			
+
+			// compare clocks, the lowest wins
 			if (sendClock < ownClock)
 			{
 				NodeInterface std = Util.getProcessStub(message.getNodeIP(), message.getPort());
-				std.onMutexAcknowledgementReceived(message); break;
+				std.onMutexAcknowledgementReceived(message);
+				break;
 			}
-			
+
 			// if clocks are the same, compare nodeIDs, the lowest wins
 			if (sendClock == ownClock)
 			{
@@ -212,13 +219,14 @@ public class MutualExclusion
 					// if sender wins, acknowledge the message, obtain a stub and call
 					// onMutexAcknowledgementReceived()
 					NodeInterface std = Util.getProcessStub(message.getNodeIP(), message.getPort());
-					std.onMutexAcknowledgementReceived(message); break;
+					std.onMutexAcknowledgementReceived(message);
+					break;
 				}
 			}
-			
+
 			// if sender looses, queue it
 			queue.add(message);
-			
+
 			break;
 		}
 
@@ -243,7 +251,7 @@ public class MutualExclusion
 			// obtain a stub for each node from the registry
 			NodeInterface stub = Util.getProcessStub(m.getNodeIP(), m.getPort());
 
-			// call releaseLocks()	
+			// call releaseLocks()
 			try
 			{
 				stub.releaseLocks();
@@ -259,13 +267,13 @@ public class MutualExclusion
 	{
 		// check if the size of the queueack is same as the numvoters
 
-		if(queueack.size() == numvoters)
+		if (queueack.size() == numvoters)
 		{
 			// clear the queueack
 			queueack.clear();
 			return true;
 		}
-		
+
 		// return true if yes and false if no
 		return false;
 	}
