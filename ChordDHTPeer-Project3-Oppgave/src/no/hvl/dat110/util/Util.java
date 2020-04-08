@@ -43,11 +43,12 @@ public class Util {
 
 		if (upper.compareTo(lower) < 0)
 		{
-			upper = upper.add(mod);
-			if (upper.compareTo(id) > 0)
+			
+			if (upper.compareTo(id) >= 0)
 			{
 				id = id.add(mod);
 			}
+			upper = upper.add(mod);
 		}
 		
 		if (lower.compareTo(id) <= 0 && upper.compareTo(id) >= 0)
