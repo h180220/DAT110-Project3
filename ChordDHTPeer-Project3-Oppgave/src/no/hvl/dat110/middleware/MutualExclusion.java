@@ -112,12 +112,32 @@ public class MutualExclusion
 	{
 
 		// increment the local clock
+		clock.increment();
 
 		// if message is from self, acknowledge, and call
 		// onMutexAcknowledgementReceived()
 
 		int caseid = -1;
-
+		
+			if (message.getNodeIP().equals(node.getNodeName()))
+			{
+				caseid = 0;
+			}
+			
+			if (!CS_BUSY && !WANTS_TO_ENTER_CS)
+			{
+				caseid = 0;
+			}
+			
+			else if (CS_BUSY)
+			{
+				caseid = 1;
+			}
+			else
+			{
+				caseid = 2;
+			}
+		
 		// write if statement to transition to the correct caseid
 		// caseid=0: Receiver is not accessing shared resource and does not want to
 		// (send OK to sender)
@@ -146,9 +166,11 @@ public class MutualExclusion
 		case 0:
 		{
 			// get a stub for the sender from the registry
+			NodeInterface stub = Util.getProcessStub(procName, port);
 			// acknowledge message
+			message.setAcknowledged(true);
 			// send acknowledgement back by calling onMutexAcknowledgementReceived()
-
+			stub.onMutexAcknowledgementReceived(message);
 			break;
 		}
 
@@ -158,8 +180,8 @@ public class MutualExclusion
 		 */
 		case 1:
 		{
-
 			// queue this message
+			queue.add(message);
 			break;
 		}
 
@@ -171,13 +193,32 @@ public class MutualExclusion
 		case 2:
 		{
 			// check the clock of the sending process
+			int sendClock = message.getClock();
 			// own clock for the multicast message
-			// compare clocks, the lowest wins
+			int ownClock = node.getMessage().getClock();
+			
+			// compare clocks, the lowest wins			
+			if (sendClock < ownClock)
+			{
+				NodeInterface std = Util.getProcessStub(message.getNodeIP(), message.getPort());
+				std.onMutexAcknowledgementReceived(message); break;
+			}
+			
 			// if clocks are the same, compare nodeIDs, the lowest wins
-			// if sender wins, acknowledge the message, obtain a stub and call
-			// onMutexAcknowledgementReceived()
+			if (sendClock == ownClock)
+			{
+				if (message.getNodeID().compareTo(node.getNodeID()) == -1)
+				{
+					// if sender wins, acknowledge the message, obtain a stub and call
+					// onMutexAcknowledgementReceived()
+					NodeInterface std = Util.getProcessStub(message.getNodeIP(), message.getPort());
+					std.onMutexAcknowledgementReceived(message); break;
+				}
+			}
+			
 			// if sender looses, queue it
-
+			queue.add(message);
+			
 			break;
 		}
 
